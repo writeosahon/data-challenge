@@ -63,8 +63,11 @@ def downloadGasPricesData() -> str :
 
     return tempfilePath  # return the filepath for the just created object 
 
-def convertDataToCSV(gasPriceDataFilePath : str):
-    """ Function converts to the downloaded gas prices data to specified CSV data format """
+
+def convertDataToCSV(gasPriceDataFilePath : str) -> str:
+    """ Function converts the downloaded gas prices data to specified CSV data format.
+    User can also sort the CSV data based on the DATE column.
+    Functions returns the filepath for the  converted and saved csv data """
     
     #read the excel data into panda dataframes
     print("converting Excel Data to CSV...")
@@ -92,22 +95,50 @@ def convertDataToCSV(gasPriceDataFilePath : str):
 
     dataFrame.to_csv(csvFilePath, index=False, header=["DATE", "GAS PRICE"])
     print(f"CSV data file for daily gas price saved to location '{csvFilePath}' ")
+    return csvFilePath # return the csv filepath
 
-def plotGraph():
-    """ Function is used to plot a time series graph based on the downloaded CSV data """
+
+def plotGraph(csvDataFilePath: str):
+    """ Function is used to plot a time series graph based on the created/formatted CSV data """
 
     # set the default rendering engine for plotly graphs
-    pio.renderers.default = "browser"
-    # create a time series graph using the created csv data file
-    dataFrame = pandas.read_csv('2020-01-27-daily-gas-price.csv')
-
-    fig = plotlygraph.Figure([plotlygraph.Scatter(x=dataFrame['DATE'], y=dataFrame['GAS PRICE'])])
-    fig.update_layout(
-    title="Gas Price",
-    xaxis_title="DATE",
-    yaxis_title="GAS PRICES")
+    pio.renderers.default = "browser" # i.e. open graphs on user's system browser
     
-    fig.show()
+    # ask the user if they want display data graph from the csv file.
+    generateGraph = input("""Do you wish to create a graph from the formatted CSV data ?\n""" +  
+                            """Enter 'Y' or 'N' for 'Yes' or 'No' \u27A4   """)
+
+    if generateGraph.upper().startswith("Y"): # user wants to generate graph
+        # create a panda dataframe from the csv file
+        dataFrame = pandas.read_csv(csvDataFilePath)
+
+        # create a time series graph using the provided csv data file
+        fig = plotlygraph.Figure([plotlygraph.Scatter(x=dataFrame['DATE'], y=dataFrame['GAS PRICE'])])
+        fig.update_layout(
+        title={
+            'text': "Gas Prices Over Time",
+            'y':0.9,
+            'x':0.5,
+            'xanchor': 'center',
+            'yanchor': 'top'
+            },
+        xaxis_title="DATE",
+        yaxis_title="GAS PRICES ($)", 
+        font=dict(
+            family="Courier New, monospace",
+            size=20,
+            color="#7f7f7f"
+        ))
+        print("Preparing the graph display...")
+        fig.show() # display the graph
+        return
+
+    elif generateGraph.upper().startswith("N"): # user doesn't want to display graph
+        return
+    else: # invalid input, so do nothing
+        print("INVALID INPUT, NO GRAPH DISPLAY")
+        return
+    
 
 
 if __name__ == "__main__": # this is the main module being executed
@@ -134,7 +165,7 @@ if __name__ == "__main__": # this is the main module being executed
 
     # call the function to convert downloaded data to CSV
     try:
-        convertDataToCSV(tempGasPricesFilePath)
+        csvFilePath = convertDataToCSV(tempGasPricesFilePath)
     except KeyboardInterrupt as keyinterrupt:
         print("\nUSER EXITED APPLICATION")        
         sys.exit(0) # exit the application gracefully
@@ -142,8 +173,15 @@ if __name__ == "__main__": # this is the main module being executed
         print("SORRY AN ERROR OCCURED WHILE CONVERTING DATA TO CSV")
         sys.exit(0) # exit the application gracefully
     
-    # plot Graph
-    plotGraph()
+    # call the function to plot/display graph based on the created csv data
+    try:
+        plotGraph(csvFilePath)
+    except KeyboardInterrupt as keyinterrupt:
+        print("\nUSER EXITED APPLICATION")        
+        sys.exit(0) # exit the application gracefully
+    except Exception as e:
+        print("SORRY AN ERROR OCCURED WHILE GENERATING DATA GRAPH")
+        sys.exit(0) # exit the application gracefully
 
 
     
