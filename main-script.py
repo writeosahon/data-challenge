@@ -130,7 +130,7 @@ def plotGraph(csvDataFilePath: str):
             color="#7f7f7f"
         ))
         print("Preparing the graph display...")
-        fig.write_html('timeseries.html', auto_open=True) # display the graph
+        fig.write_html('timeseries.html', auto_open=True) # display the graph using default brpwser
         return
 
     elif generateGraph.upper().startswith("N"): # user doesn't want to display graph
